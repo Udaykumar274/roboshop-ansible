@@ -1,0 +1,29 @@
+- name: setup rabbitmq server
+  hosts: rabbitmq
+  become: yes
+  tasks:
+
+    - name: enable EPEL via amazon-linux-extras
+      ansible.builtin.command: amazon-linux-extras install -y epel
+      args:
+        creates: /etc/yum.repos.d/epel.repo
+
+    - name: install erlang and rabbitmq server
+      ansible.builtin.command: yum install -y erlang rabbitmq-server
+      register: rinstall
+      changed_when: "'Complete!' in rinstall.stdout"
+
+    - name: start and enable rabbitmq server
+      ansible.builtin.systemd:
+        name: rabbitmq-server
+        state: started
+        enabled: true
+
+    - name: create rabbitmq user roboshop (ignore if exists)
+      ansible.builtin.command: rabbitmqctl add_user roboshop roboshop123
+      register: add_user_result
+      failed_when: add_user_result.rc not in [0,70]
+      changed_when: add_user_result.rc == 0
+
+    - name: set permissions for roboshop user on /
+      ansible.builtin.command: rabbitmqctl set_permissions -p / roboshop ".*" ".*" ".*"
