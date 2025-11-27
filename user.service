@@ -1,0 +1,13 @@
+[Unit]
+Description = User Service
+
+[Service]
+User=roboshop
+Environment=MONGO=true
+Environment=REDIS_URL=redis://54.234.150.104:6379
+Environment=MONGO_URL=mongodb://34.204.44.239:27017/users
+ExecStart=/usr/local/bin/node /app/server.js
+SyslogIdentifier=user
+
+[Install]
+WantedBy=multi-user.target
